@@ -17,6 +17,14 @@ export interface WarcraftNotificationConfig {
   suppressDuringSubagent?: boolean;
   /** Timeout in ms to clear subagent state if no completion signal received (default: 30000, range: 1000-300000) */
   subagentSilenceTimeoutMs?: number;
+  /**
+   * Write verbose diagnostic lines to a plugin-local debug log file
+   * (warcraft-debug.log). Errors are always recorded regardless of this flag;
+   * it only gates informational lines such as event receipt and playback.
+   * Defaults to true. Set to false to stop file writes. Setting the
+   * WARCRAFT_DEBUG_FILE env var forces it on.
+   */
+  debug?: boolean;
 }
 
 /**

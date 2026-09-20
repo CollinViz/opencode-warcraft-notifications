@@ -47,6 +47,12 @@ const warcraftConfigSchema = z
       .max(300000)
       .optional()
       .describe('Timeout in ms to clear subagent state (default: 30000, range: 1000-300000)'),
+    debug: z
+      .boolean()
+      .optional()
+      .describe(
+        'Write verbose diagnostics to a plugin-local debug log file. Errors are always logged; this gates informational lines only. Defaults to true (default: true)',
+      ),
   })
   .strict(); // Reject unknown properties
 
@@ -97,7 +103,7 @@ const formatInvalidValueError = (path: string, issue: ZodIssueData): string => {
 const formatUnrecognizedKeysError = (issue: ZodIssueData): string => {
   const keys = issue.keys as string[];
   if (keys && Array.isArray(keys)) {
-    return `Unrecognized configuration key(s): ${keys.join(', ')}. Only 'soundsDir', 'faction', 'showDescriptionInToast', 'suppressDuringSubagent', and 'subagentSilenceTimeoutMs' are allowed.`;
+    return `Unrecognized configuration key(s): ${keys.join(', ')}. Only 'soundsDir', 'faction', 'showDescriptionInToast', 'suppressDuringSubagent', 'subagentSilenceTimeoutMs', and 'debug' are allowed.`;
   }
   return `Unrecognized configuration keys`;
 };

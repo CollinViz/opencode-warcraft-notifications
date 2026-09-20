@@ -27,8 +27,36 @@ const getLogPath = (): string => {
  * Server-plugin stdout/stderr is not visible when OpenCode runs as a
  * background service, so lifecycle events and errors are recorded here
  * instead. Best-effort: never throws.
+ *
+ * Gated: informational lines are only written while debug logging is enabled
+ * (see `setDebugEnabled`); use `errorLogFile` for lines that must always be
+ * recorded.
  */
 export const debugLogFile = async (message: string, data?: unknown): Promise<void> => {
+  if (!enabled) return;
+  await writeLogLine(message, data);
+};
+
+/**
+ * Record a diagnostic line unconditionally, regardless of the `debug` flag.
+ * Reserved for errors and fail-open paths that must leave a trail even when
+ * verbose logging is disabled.
+ */
+export const errorLogFile = async (message: string, data?: unknown): Promise<void> => {
+  await writeLogLine(message, data);
+};
+
+let enabled = true;
+
+/**
+ * Toggle verbose (informational) file logging. Setting the WARCRAFT_DEBUG_FILE
+ * env var forces logging on regardless of this flag. Errors are never gated.
+ */
+export const setDebugEnabled = (value: boolean): void => {
+  enabled = Boolean(process.env.WARCRAFT_DEBUG_FILE) || value;
+};
+
+const writeLogLine = async (message: string, data?: unknown): Promise<void> => {
   try {
     const path = getLogPath();
     await mkdir(dirname(path), { recursive: true });

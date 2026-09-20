@@ -13,7 +13,7 @@ import { validateAndSanitizeConfig } from './schema-validator.js';
 import type { WarcraftNotificationConfig } from './config/index.js';
 import { extractFilename, getIdleSummary } from './notification-utils.js';
 import { playSoundFile, playFallbackSound } from './sound-player.js';
-import { debugLogFile } from './debug-log.js';
+import { debugLogFile, errorLogFile, setDebugEnabled } from './debug-log.js';
 /* eslint-disable jsdoc/require-param */
 
 const log = createLogger({ module: 'opencode-plugin-warcraft-notifications' });
@@ -122,7 +122,7 @@ const createIdleHandler = (
       return true;
     } catch (error) {
       log.error('Failed to play sound', { error, soundPath });
-      await debugLogFile('playback failed', {
+      await errorLogFile('playback failed', {
         soundPath,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -266,7 +266,7 @@ const createIdleHandler = (
             return undefined;
           }
         } catch (err) {
-          await debugLogFile('subagent session check failed, playing anyway', {
+          await errorLogFile('subagent session check failed, playing anyway', {
             sessionID,
             error: err instanceof Error ? err.message : String(err),
           });
@@ -397,6 +397,7 @@ const WarcraftNotificationsV2 = V2Plugin.define({
   id: PLUGIN_ID,
   async setup(ctx) {
     const pluginConfig = await resolvePluginConfig(ctx.options);
+    setDebugEnabled(pluginConfig.debug ?? true);
     await debugLogFile('setup', {
       options: ctx.options,
       directory: ctx.location.directory,
@@ -504,7 +505,7 @@ const WarcraftNotificationsV2 = V2Plugin.define({
                     );
                   }
                 } catch (err) {
-                  await debugLogFile('session.context enrichment failed', {
+                  await errorLogFile('session.context enrichment failed', {
                     error: err instanceof Error ? err.message : String(err),
                   });
                   // Fall back to tracked lastMessage
@@ -514,7 +515,7 @@ const WarcraftNotificationsV2 = V2Plugin.define({
             await idle.handleEvent(typed, noToast, logMissing);
           } catch (err) {
             log.error('Failed to handle event', { error: err });
-            await debugLogFile('event handler error', {
+            await errorLogFile('event handler error', {
               error: err instanceof Error ? err.message : String(err),
             });
           }
